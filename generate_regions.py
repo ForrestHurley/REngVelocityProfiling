@@ -30,6 +30,9 @@ class obstacle(object):
     def get_points(self,resolution):
         return (np.array([self.pos]))
 
+    def contains_point(self,point):
+        pass
+
     def draw(self,color="b",show=False):
         if (show):
             plt.show()
@@ -49,6 +52,9 @@ class rectangle(obstacle):
         if (show):
             plt.show()
 
+    def contains_points(self,points):
+        return np.zeros(points.shape,dtype='bool')
+
 class ellipse(obstacle):
     pass
 
@@ -67,16 +73,19 @@ class region(object):
         self.obstacles = [ rectangle(size=size) ] #The region bounding box
 
     @classmethod
-    def RandomBlocks(cls,count=10,total_area=0.3,size=(100,100)):
+    def RandomBlocks(cls,count=10,total_area=0.3,size=(100,100),safe_points = np.array([])):
         random_region = cls(size)
 
         uniform_area = size[0]*size[1]*total_area/count
         obstacle_areas = [uniform_area for i in range(count)] #TODO: make code to make sum of areas equal total area
 
         for area in obstacle_areas:
-            random_region.obstacles.append(rectangle.RandomObstacle(bottom_left=(0,0),
-                                            top_right=random_region.size,area=area))
-
+            while True:
+                new_obstacle = rectangle.RandomObstacle(bottom_left=(0,0),
+                                 top_right=random_region.size,area=area)
+                if not np.any(new_obstacle.contains_points(safe_points)):
+                    random_region.obstacles.append(new_obstacle)
+                    break
         return (random_region)
 
     def get_points(self):
@@ -93,6 +102,19 @@ class region(object):
             plt.show()
 
 if __name__ == "__main__":
+
+    from plan_path import path_planner
+
+    planner = path_planner.create_planner()
+    planner.plot = True
+
+    area = region.RandomBlocks(2)
+    planned_path = planner.generate_path(area)
+
+    plt.plot(planned_path.arc_length)
+    plt.show()
+
+    '''
     area = region.RandomBlocks()
     from PythonRobotics.PathPlanning.AStar import a_star
     x, y = area.get_points()
@@ -118,3 +140,4 @@ if __name__ == "__main__":
     
     plt.plot(rx, ry, "-r")
     plt.show()
+    '''
