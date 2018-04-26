@@ -108,11 +108,9 @@ if __name__ == "__main__":
     planner = path_planner.create_planner()
     planner.plot = True
 
-    area = region.RandomBlocks(2)
+    area = region.RandomBlocks(20)
     planned_path = planner.generate_path(area)
 
-    plt.plot(planned_path.arc_length)
-    plt.show()
 
     '''
     area = region.RandomBlocks()

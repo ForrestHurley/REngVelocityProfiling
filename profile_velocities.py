@@ -18,6 +18,7 @@ class path(object):
         self._curvature = None
         self._t_hat = None
         self._n_hat = None
+        self._t_values = None
 
     @property
     def raw_points(self):
@@ -45,12 +46,17 @@ class path(object):
                                             y = self.raw_points,
                                             axis = 1)
         return self._point_interpolator
+    
+    @property
+    def t_values(self):
+        if (self._t_values is None):
+            self._t_values = np.linspace(0,self.raw_points.shape[1],self.resolution)
+        return self._t_values
 
     @property
     def raw_interp_points(self):
         if (self._raw_interp_points is None):
-            t_values = np.linspace(0,self.raw_points.shape[1],self.resolution)
-            self._raw_interp_points = self.point_interpolator(t_values)
+            self._raw_interp_points = self.point_interpolator(self.t_values)
             
         return self._raw_interp_points
 
@@ -66,13 +72,19 @@ class path(object):
     @property
     def uniform_points(self):
         if (self._uniform_points is None):
-            pass 
+            self._uniform_points = interpolate.make_interp_spline(self.arc_length,self.t_values) 
         return self._uniform_points
 
     @property
     def curvature(self):
         if (self._curvature is None):
-            pass 
+            first_deriv = self.point_interpolator.derivative(nu=1)(self.t_values)
+            second_deriv = self.point_interpolator.derivative(nu=2)(self.t_values)
+
+            numerator = first_deriv[0]*second_deriv[1] - first_deriv[1]*second_deriv[0]
+            denominator = (first_deriv[0]**2 + first_deriv[1]**2)**(3./2.)
+
+            self._curvature = interpolate.make_interp_spline(self.t_values, numerator / denominator)
         return self._curvature
 
     @property
@@ -87,16 +99,66 @@ class path(object):
             pass
         return self._n_hat
 
+    def iterate_path(self,forward = True):
+        return path_iterator(self,forward)
+
+    def __iter__(self):
+        return path_iterator(self)
+
+class path_iterator(object):
+    def __init__(self,path,forward = True,step = None):
+        self.resolution = path.resolution
+        self.path = path
+        self.forward = forward
+        if (step is None):
+            self.step = (forward * 2 - 1) * path.length / path.resolution
+        else:
+            self.step = step
+            forward = step > 0
+        if forward:
+            self.current = 0
+        else:
+            self.current = path.length
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if forward:
+            if self.current > self.path.length:
+                raise StopIteration
+        else:
+            if self.current < 0:
+                raise StopIteration
+        self.current += self.step
+        spline_parameter = self.path.uniform_points(self.current)
+        location = self.path.raw_interpolator(spline_parameter)
+        curvature = self.path.curvature(spline_parameter)
+
+        return self.current, spline_parameter, location, curvature
+
 class profile(object):
-    def __init__(self):
-        pass
+    def __init__(self,path):
+        self.path = path
+        self.velocities = np.zeros(path.resolution)
 
+    def _nullify_properties(self):
+        self._total_time = None
+        self._max_velocity = None
+        self._max_acceleration = None
+        self._max_nth_derivative = None
+
+    @property
     def total_time(self):
-        pass
+        if (self._total_time is None):
+            pass
+        return self._total_time 
 
+    @property
     def max_velocity(self):
         pass
 
+    @property
     def max_acceleration(self):
         pass
 
@@ -104,14 +166,19 @@ class profile(object):
         pass
 
 class vel_profiler(object):
-    def __init__(self):
-        pass
+    def __init__(self,constraints):
+        self.constraints = constraints
+        self.initial_velocity = (0,0)
+        self.final_velocity = (0,0)
 
-    def generate_velocities(self, points):
+    def generate_velocities(self, path):
         pass
 
 class linear_profiler(vel_profiler):
-    pass
+    def __init__(self,constraints):
+        super().__init__(constraints)
+        self.initial_velocity = 0
+        self.final_velocity = 0
    
 class linear_trapezoidal_profiler(linear_profiler):
     pass
@@ -120,4 +187,16 @@ class linear_s_curve_profiler(linear_profiler):
     pass
 
 class trapezoidal_profiler(vel_profiler):
-    pass 
+    pass
+
+if __name__ == "__main__":
+    from plan_path import path_planner
+    import generate_regions
+
+    planner = path_planner.create_planner()
+    planner.plot = True
+
+    area = generate_regions.region.RandomBlocks(20)
+    planned_path = planner.generate_path(area)
+
+    
