@@ -135,12 +135,16 @@ class path_iterator(object):
         location = self.path.raw_interpolator(spline_parameter)
         curvature = self.path.curvature(spline_parameter)
 
-        return self.current, spline_parameter, location, curvature
+        #current arclength, distance, spline parameter, x y location, curvature from interpolator
+        return self.current, self.step, spline_parameter, location, curvature
 
 class profile(object):
-    def __init__(self,path):
+    def __init__(self,path,constraint = None):
         self.path = path
-        self.velocities = np.zeros(path.resolution)
+        if constraint = None:
+            self.velocities = np.full(shape = (path.resolution), fill_value = np.inf)
+        else:
+            self.velocities = 
 
     def _nullify_properties(self):
         self._total_time = None
@@ -168,22 +172,11 @@ class profile(object):
 class vel_profiler(object):
     def __init__(self,constraints):
         self.constraints = constraints
-        self.initial_velocity = (0,0)
-        self.final_velocity = (0,0)
 
     def generate_velocities(self, path):
         pass
 
-class linear_profiler(vel_profiler):
-    def __init__(self,constraints):
-        super().__init__(constraints)
-        self.initial_velocity = 0
-        self.final_velocity = 0
-   
-class linear_trapezoidal_profiler(linear_profiler):
-    pass
-
-class linear_s_curve_profiler(linear_profiler):
+class max_vel_profiler(vel_profiler):
     pass
 
 class trapezoidal_profiler(vel_profiler):
