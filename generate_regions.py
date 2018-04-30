@@ -111,31 +111,3 @@ if __name__ == "__main__":
     area = region.RandomBlocks(20)
     planned_path = planner.generate_path(area)
 
-
-    '''
-    area = region.RandomBlocks()
-    from PythonRobotics.PathPlanning.AStar import a_star
-    x, y = area.get_points()
-    x = [int(val) for val in x]
-    y = [int(val) for val in y]
-
-    #path planning
-    sx = 1.
-    sy = 1.
-    gx = 90.
-    gy = 90.
-
-    grid_size = 1.
-    robot_size = 1.
-
-    plt.plot(x, y, ".k")
-    plt.plot(sx, sy, "xr")
-    plt.plot(gx, gy, "xb")
-    plt.grid(True)
-    plt.axis("equal")
-
-    rx, ry = a_star.a_star_planning(sx, sy, gx, gy, x, y, grid_size, robot_size)
-    
-    plt.plot(rx, ry, "-r")
-    plt.show()
-    '''
