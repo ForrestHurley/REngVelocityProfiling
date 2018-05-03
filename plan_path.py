@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-from profile_velocities import path
+from path import path
 
 class path_planner(object):
     def __init__(self,verbose=False,planner=None,start=(10.,10.),goal=(90.,90.),plot=True):

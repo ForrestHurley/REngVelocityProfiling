@@ -20,6 +20,14 @@ class path(object):
         self._n_hat = None
         self._t_values = None
 
+    def draw_path(self):
+        plt.plot(self.raw_points[0],self.raw_points[1])
+        plt.show()
+
+    def draw_curvature(self):
+        plt.plot(np.abs(self.curvature(self.t_values)))
+        plt.show()
+
     @property
     def raw_points(self):
         return self._raw_points
@@ -65,8 +73,12 @@ class path(object):
         if (self._arc_length is None):
             distances = np.sum(np.diff(self.raw_interp_points,n=1,axis=-1)**2,axis=0)**0.5
 
-            self._arc_length = np.cumsum(distances)
-        
+            out = np.empty(self.raw_interp_points.shape[1], dtype = 'double')
+            np.cumsum(distances, out = out[1:])
+            out[0] = 0
+
+            self._arc_length = out        
+
         return self._arc_length
 
     @property
