@@ -97,5 +97,5 @@ if __name__ == "__main__":
     vel_profile = profile(new_constraint)
 
     print("Profile generated")
-    plt.plot(vel_profile.times, vel_profile.points)
+    plt.plot(vel_profile.times, vel_profile.velocities)
     plt.show()

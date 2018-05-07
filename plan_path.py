@@ -44,7 +44,7 @@ class path_planner(object):
         #show_animation = self.plot #The imported libraries use global variables
 
         if (self.plot):
-            plt.plot(x, y, ".k")
+            region.draw(show = False)
             plt.plot(self.start[0],self.start[1],"xr")
             plt.plot(self.goal[0],self.goal[1],"xb")
             plt.grid(True)

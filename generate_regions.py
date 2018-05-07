@@ -1,17 +1,18 @@
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+from matplotlib import patches
 
 class obstacle(object):
     def __init__(self,x=0,y=0,size=(1,1)):
-        self.pos = (x,y)
+        self.pos = np.array((x,y))
         if (len(size) > 2):
             pass
             #insert exception here
         if (len(size) == 1):
-            self.size = (size,size)
+            self.size = np.array((size,size))
         else:
-            self.size = size
+            self.size = np.array(size)
 
     @classmethod
     def RandomObstacle(cls,bottom_left=(0,0),top_right=(10,10),area=None):
@@ -33,9 +34,8 @@ class obstacle(object):
     def contains_point(self,point):
         pass
 
-    def draw(self,color="b",show=False):
-        if (show):
-            plt.show()
+    def draw(self,color="b"):
+        pass
 
 class rectangle(obstacle):
     def get_points(self): 
@@ -48,12 +48,18 @@ class rectangle(obstacle):
                         [np.full(y.shape,int(self.pos[0]+self.size[0])),y]),axis=-1)
         return xy
 
-    def draw(self,color="b",show=False):
-        if (show):
-            plt.show()
+    def draw(self,color="b",fill = True):
+        #points = self.get_points()
+        #plt.scatter(points[0],points[1])
+        rect = patches.Rectangle(self.pos,
+            self.size[0],
+            self.size[1],
+            color = color,
+            fill = fill)
+        return rect
 
-    def contains_points(self,points):
-        return np.zeros(points.shape,dtype='bool')
+    def contains_points(self,points,epsilon = 1):
+        return np.logical_and(points > (self.pos - epsilon), points < (np.add(self.pos, self.size) + epsilon))
 
 class ellipse(obstacle):
     pass
@@ -73,7 +79,7 @@ class region(object):
         self.obstacles = [ rectangle(size=size) ] #The region bounding box
 
     @classmethod
-    def RandomBlocks(cls,count=10,total_area=0.3,size=(100,100),safe_points = np.array([])):
+    def RandomBlocks(cls,count=10,total_area=0.3,size=(100,100),safe_points = np.array([[10,90],[10,90]])):
         random_region = cls(size)
 
         uniform_area = size[0]*size[1]*total_area/count
@@ -96,8 +102,13 @@ class region(object):
         return (points)
     
     def draw(self,show=True):
-        for obs in self.obstacles:
-            obs.draw(show=False)
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.set_xlim(-1,101)
+        ax.set_ylim(-1,101)
+        ax.add_patch(self.obstacles[0].draw(fill=False))
+        for obs in self.obstacles[1:]:
+            ax.add_patch(obs.draw())
         if (show):
             plt.show()
 
